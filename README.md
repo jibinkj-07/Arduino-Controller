@@ -41,7 +41,7 @@ Before begin make sure you have the following installed:
 1. Clone the repository
 
    ```
-   git clone https://github.com/yourusername/arduino_controller_flutter.git
+   git clone https://github.com/jibinkj-07/Arduino-Controller.git
    
    ```
 2. Install Flutter: Ensure Flutter is installed on your machine. You can find installation instructions here.
