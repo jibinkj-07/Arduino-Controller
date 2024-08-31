@@ -1,3 +1,4 @@
+import 'package:arduino_controller/models/arduino_model.dart';
 import 'package:arduino_controller/resources/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,45 +11,146 @@ class ControlScreen extends StatefulWidget {
 }
 
 class _ControlScreenState extends State<ControlScreen> {
-  ApiService _apiService=ApiService();
+  final ApiService _apiService = ApiService();
+  ArduinoModel? _arduinoData;
+  bool _isAuto = false;
+  bool _isVacuum = false;
+  int _speed = 0;
+
+  Future<void> getData() async {
+    final data = await _apiService.getInfo();
+    setState(() {
+      _arduinoData = data;
+    });
+  }
+
+  @override
+  void initState() {
+    getData();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
+    print('controller is $_arduinoData');
+    if (_arduinoData != null) {
+      _isAuto = _arduinoData!.auto ? true : false;
+      _isVacuum = _arduinoData!.isVacuum ? true : false;
+      _speed = _arduinoData!.speed;
+    }
 
 
     return Scaffold(
-      backgroundColor: const Color(0xff605F5F),
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: const Color(0xff605F5F),
+        backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0.0,
         leading: null,
-        // leading: IconButton(
-        //   onPressed: () {},
-        //   icon: const Icon(Icons.arrow_back_ios_new_rounded),
-        //   splashRadius: 20.0,
-        // ),
         title: const Text('Arduino Controller'),
         centerTitle: true,
       ),
       body: SizedBox(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
-        child: Column(
-          children: [
-            //car image
-            buildImage(),
-            Expanded(
-              child: buildController(),
-            )
-            //controller
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              _arduinoData != null
+                  ? const Text(
+                      'Connected',
+                      style: TextStyle(
+                          color: Colors.green, fontWeight: FontWeight.bold),
+                    )
+                  : const Text(
+                      'Not connected',
+                      style: TextStyle(
+                          color: Colors.red, fontWeight: FontWeight.bold),
+                    ),
+              //car image
+              buildImage(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                color: const Color(0xff3C3C3C),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    buildAutoToggler(),
+                    buildVacuumToggler(),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 30.0),
+              buildController(),
+              const SizedBox(height: 30.0),
+              Text(
+                'Speed $_speed',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20.0),
+                child: Slider(
+                    min: 0.0,
+                    max: 225.0,
+                    label: _speed.toString(),
+                    value: double.parse(_speed.toString()),
+                    onChanged: (value) async{
+                      await _apiService.changeSpeed(speed: value.toInt());
+                      getData();
+                    }),
+              )
+              //controller
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget buildImage() {
-    return Image.asset('assets/images/robot_car.png');
+    return Image.asset(
+      'assets/images/robot_car.png',
+      height: 200.0,
+    );
+  }
+
+  Widget buildAutoToggler() {
+    return Row(
+      children: [
+        const Text(
+          "Auto",
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        const SizedBox(width: 10.0),
+        Switch(
+            value: _isAuto,
+            onChanged: (value) async {
+              await _apiService.changeAutoMode(isAuto: !_isAuto);
+              await getData();
+            }),
+      ],
+    );
+  }
+
+  Widget buildVacuumToggler() {
+    return Row(
+      children: [
+        const Text(
+          "Vacuum",
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        const SizedBox(width: 10.0),
+        Switch(
+            value: _isVacuum,
+            onChanged: (value) async {
+              await _apiService.changeVacuumMode(isVacuum: !_isVacuum);
+              await getData();
+            }),
+      ],
+    );
   }
 
   Widget buildController() {
@@ -111,22 +213,27 @@ class _ControlScreenState extends State<ControlScreen> {
               end: Alignment.bottomCenter,
             ),
           ),
-        ),
-        Positioned(
-          top: 80.0,
-          child: forwardButton(),
-        ),
-        Positioned(
-          left: 15.0,
-          child: leftButton(),
-        ),
-        Positioned(
-          bottom: 80.0,
-          child: backwardButton(),
-        ),
-        Positioned(
-          right: 15.0,
-          child: rightButton(),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Positioned(
+                top: 0,
+                child: forwardButton(),
+              ),
+              Positioned(
+                left: 0,
+                child: leftButton(),
+              ),
+              Positioned(
+                bottom: 0,
+                child: backwardButton(),
+              ),
+              Positioned(
+                right: 0,
+                child: rightButton(),
+              ),
+            ],
+          ),
         ),
         pauseButton(),
       ],
@@ -137,47 +244,46 @@ class _ControlScreenState extends State<ControlScreen> {
     return IconButton(
       onPressed: () async {
         HapticFeedback.mediumImpact();
-      await  _apiService.changeDeviceMovement(movement: 'Forward');
-
+        await _apiService.changeDeviceMovement(movement: 'Forward');
       },
-      icon:const Icon(Icons.keyboard_arrow_up_rounded),
-      color:const Color(0xffD9D9D9),
+      icon: const Icon(Icons.keyboard_arrow_up_rounded),
+      color: const Color(0xffD9D9D9),
       iconSize: 45.0,
     );
   }
 
   Widget leftButton() {
     return IconButton(
-      onPressed: ()async {
+      onPressed: () async {
         HapticFeedback.mediumImpact();
-       await _apiService.changeDeviceMovement(movement: 'Left');
+        await _apiService.changeDeviceMovement(movement: 'Left');
       },
-      icon:const Icon(Icons.keyboard_arrow_left_rounded),
-      color:const Color(0xffD9D9D9),
+      icon: const Icon(Icons.keyboard_arrow_left_rounded),
+      color: const Color(0xffD9D9D9),
       iconSize: 45.0,
     );
   }
 
   Widget backwardButton() {
     return IconButton(
-      onPressed: () async{
+      onPressed: () async {
         HapticFeedback.mediumImpact();
         await _apiService.changeDeviceMovement(movement: 'Backward');
       },
-      icon:const Icon(Icons.keyboard_arrow_down_rounded),
-      color:const Color(0xffD9D9D9),
+      icon: const Icon(Icons.keyboard_arrow_down_rounded),
+      color: const Color(0xffD9D9D9),
       iconSize: 45.0,
     );
   }
 
   Widget rightButton() {
     return IconButton(
-      onPressed: () async{
+      onPressed: () async {
         HapticFeedback.mediumImpact();
         await _apiService.changeDeviceMovement(movement: 'Right');
       },
-      icon:const Icon(Icons.keyboard_arrow_right_rounded),
-      color:const Color(0xffD9D9D9),
+      icon: const Icon(Icons.keyboard_arrow_right_rounded),
+      color: const Color(0xffD9D9D9),
       iconSize: 45.0,
     );
   }
@@ -243,12 +349,12 @@ class _ControlScreenState extends State<ControlScreen> {
                 stops: [0.0, 1.0]),
           ),
           child: IconButton(
-            onPressed: () async{
+            onPressed: () async {
               HapticFeedback.mediumImpact();
               await _apiService.changeDeviceMovement(movement: 'Stop');
             },
-            icon:const Icon(Icons.pause_rounded),
-            color:const Color(0xffD9D9D9),
+            icon: const Icon(Icons.pause_rounded),
+            color: const Color(0xffD9D9D9),
             iconSize: 40.0,
           ),
         ),

@@ -4,6 +4,7 @@ class ArduinoModel{
   late int battery;
   late bool isCharging;
   late bool isVacuum;
+  late bool auto;
   late int speed;
 
   ArduinoModel.fromJson(jsonData){
@@ -12,6 +13,7 @@ class ArduinoModel{
     battery=jsonData['Battery_Level'];
     isCharging=jsonData['Charging_Status'];
     isVacuum=jsonData['Vacuum'];
-    speed=jsonData['speed'];
+    auto=jsonData['Auto'];
+    speed=jsonData['Speed'];
   }
 }
