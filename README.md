@@ -18,15 +18,15 @@ Android, iOS.
 
 The project is organized into several directories and files, each serving a specific purpose:
 
- - lib/: Contains the main application code, including the user interface and business logic.
- - main.dart: The entry point of the application.
- - my_app.dart: Main app widget configuration.
- - control_screen.dart: Screen for controlling the Arduino and displaying data.
- - api_service.dart: Handles communication with the Arduino chip.
- - models/: Contains data models used throughout the app for data handling and manipulation.
- - assets/: Stores static resources such as images, icons, and fonts used in the app.
- - screen/: Contains additional UI screens and widgets used in the application.
- - android/, ios/, web/, linux/, macos/, windows/: Platform-specific files and configurations for running the app on different environments.
+ - **`lib/`**: Contains the main application code, including the user interface and business logic.
+ - **`main.dart`**: The entry point of the application.
+ - **`my_app.dart`**: Main app widget configuration.
+ - **`control_screen.dart`**: Screen for controlling the Arduino and displaying data.
+ - **`api_service.dart`**: Handles communication with the Arduino chip.
+ - **`models/`**: Contains data models used throughout the app for data handling and manipulation.
+ - **`assets/`**: Stores static resources such as images, icons, and fonts used in the app.
+ - **`screen/`**: Contains additional UI screens and widgets used in the application.
+ - **`android/`**, **`ios/`**, **`web/`**, **`linux/`**, **`macos/`**, **`windows/`**: Platform-specific files and configurations for running the app on different environments.
 
 ## Getting Started
 
